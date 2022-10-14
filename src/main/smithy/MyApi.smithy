@@ -1,3 +1,5 @@
+$version: "2"
+
 namespace smithy4s.hello
 
 use smithy4s.api#simpleRestJson
@@ -5,25 +7,39 @@ use smithy4s.api#simpleRestJson
 @simpleRestJson
 service HelloWorldService {
   version: "1.0.0",
-  operations: [Hello]
+  operations: [Hello, Hello2]
 }
 
-@http(method: "POST", uri: "/{name}", code: 200)
+@http(method: "POST", uri: "/hello/{name}", code: 200)
 operation Hello {
-  input: Person,
-  output: Greeting
+  input := {
+    @httpLabel
+    @required
+    name: String,
+
+    @httpQuery("town")
+    town: String    
+  },
+  output := {
+    @required
+    message: String    
+  }
 }
 
-structure Person {
-  @httpLabel
-  @required
-  name: String,
+@http(method: "POST", uri: "/hello2/{name}", code: 200)
+operation Hello2 {
+  input := {
+    @httpLabel
+    @required
+    name: String,
 
-  @httpQuery("town")
-  town: String
-}
+    age: Integer,
 
-structure Greeting {
-  @required
-  message: String
+    @httpQuery("town")
+    town: String    
+  },
+  output := {
+    @required
+    message: String    
+  }
 }
