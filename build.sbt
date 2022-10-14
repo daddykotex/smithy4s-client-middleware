@@ -12,5 +12,6 @@ lazy val root = (project in file("."))
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
       "org.http4s" %% "http4s-ember-server" % "0.23.16",
       "org.http4s" %% "http4s-ember-client" % "0.23.16"
+//      "org.http4s" %% "http4s-blaze-client" % "0.23.12" // works
     )
   )

@@ -3,7 +3,7 @@ package com.example
 import smithy4s.hello._
 import cats.effect._
 import cats.implicits._
-import org.http4s.implicits._
+import cats.effect.syntax.resource._
 import org.http4s.ember.server._
 import org.http4s._
 import com.comcast.ip4s._
@@ -62,6 +62,30 @@ object Main extends IOApp.Simple {
       )
   }
 
+  // slow, ~ 35s on my M1
+  def hello2Twice(hs: HelloWorldService[IO]): IO[Unit] = {
+    hs.hello2("call 1").flatTap(IO.println) *>
+      hs.hello2("call 2").flatTap(IO.println).void
+  }
+
+  // will fail
+  def helloTwice(hs: HelloWorldService[IO]): IO[Unit] = {
+    hs.hello("call 1").flatTap(IO.println) *>
+      hs.hello("call 2").flatTap(IO.println).void
+  }
+
+  // will fail
+  def helloThenHello2(hs: HelloWorldService[IO]): IO[Unit] = {
+    hs.hello("call 1").flatTap(IO.println) *>
+      hs.hello2("call 2").flatTap(IO.println).void
+  }
+
+  // will succeed
+  def hello2ThenHello(hs: HelloWorldService[IO]): IO[Unit] = {
+    hs.hello2("call 1").flatTap(IO.println) *>
+      hs.hello("call 2").flatTap(IO.println).void
+  }
+
   val run = (client, Routes.all).tupled.flatMap { case (client, routes) =>
     for {
       hs <- client
@@ -71,17 +95,10 @@ object Main extends IOApp.Simple {
         .withHost(host"0.0.0.0")
         .withHttpApp(routes.orNotFound)
         .build
-      works <- {
-        Resource.eval(hs.hello2("Olivier").flatTap(IO.println)) *>
-          Resource.eval(hs.hello2("David").flatTap(IO.println)) *>
-          Resource.eval(hs.hello2("Jakub").flatTap(IO.println))
-      }
-      fails <- {
-        Resource.eval(hs.hello("Olivier").flatTap(IO.println)) *>
-          // BOOM
-          Resource.eval(hs.hello("David").flatTap(IO.println))
-      }
-
+//      _ <- helloTwice(hs).toResource
+//      _ <- hello2Twice(hs).toResource
+//      _ <- helloThenHello2(hs).toResource
+      _ <- hello2ThenHello(hs).toResource
     } yield ()
 
   }.use_
