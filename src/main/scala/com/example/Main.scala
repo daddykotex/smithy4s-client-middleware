@@ -35,7 +35,7 @@ object Main extends IOApp.Simple {
   val authMiddleware: org.http4s.client.Middleware[IO] = { client =>
     Client { req =>
       client.run(
-        req.withHeaders(
+        req.putHeaders(
           headers.Authorization(Credentials.Token(AuthScheme.Bearer, "TOKEN"))
         )
       )
